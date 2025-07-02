@@ -10,6 +10,10 @@ on:
 
 jobs:
   release:
+    permissions: 
+      attestations: write
+      id-token: write
+      contents: write
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.2
     with:
       release_files: rules_distroless-*.tar.gz
