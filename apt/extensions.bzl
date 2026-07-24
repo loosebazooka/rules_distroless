@@ -14,22 +14,6 @@ ALL_SUPPORTED_ARCHES = ["armel", "armhf", "arm64", "i386", "amd64", "mips64el", 
 
 ITERATION_MAX = 2147483646
 
-def _parse_source(src):
-    parts = src.split(" ")
-    kind = parts.pop(0)
-    if parts[0].startswith("["):
-        # skip arch for now.
-        arch = parts.pop(0)
-    url = parts.pop(0)
-    dist = parts.pop(0)
-    components = parts
-    return struct(
-        kind = kind,
-        url = url,
-        dist = dist,
-        components = components,
-    )
-
 def _get_auth(mctx, urls):
     """Given the list of URLs obtain the correct auth dict."""
     if "NETRC" in mctx.os.environ:
@@ -239,10 +223,6 @@ def _fetch_and_parse_sources(mctx, repo, glock, snapshot_suites, formats):
             formats[cnt_fk] = "unavailable"
 
 def _distroless_extension(mctx):
-    root_direct_deps = []
-    root_direct_dev_deps = []
-    reproducible = False
-
     # Detect facts API availability
     use_facts = hasattr(mctx, "facts")
     cached_facts = mctx.facts if use_facts else {}
@@ -372,8 +352,9 @@ def _distroless_extension(mctx):
 
         if not package:
             suite_msg = " in suite(s) [%s]" % ", ".join(suites) if suites else ""
+            version_str = "".join(version)
             fail(
-                "\n\nUnable to locate package `%s` for %s%s. It may only exist for specific set of architectures or suites. \n" % (name, arch, suite_msg) +
+                "\n\nUnable to locate package `%s` at version `%s` for %s%s. It may only exist for specific set of architectures or suites. \n" % (name, version_str, arch, suite_msg) +
                 "   1 - Ensure that the package is available for the specified architecture. \n" +
                 "   2 - Ensure that the specified version of the package is available for the specified architecture. \n" +
                 "   3 - Ensure that an apt.sources_list is added for the specified architecture.\n" +
