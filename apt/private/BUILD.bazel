@@ -59,12 +59,21 @@ bzl_library(
     name = "deb_import",
     srcs = ["deb_import.bzl"],
     visibility = ["//apt:__subpackages__"],
-    deps = [":pkgconfig"],
+    deps = [
+        ":linker_script",
+        ":pkgconfig",
+    ],
 )
 
 bzl_library(
     name = "deb_filemap",
     srcs = ["deb_filemap.bzl"],
+    visibility = ["//apt:__subpackages__"],
+)
+
+bzl_library(
+    name = "linker_script",
+    srcs = ["linker_script.bzl"],
     visibility = ["//apt:__subpackages__"],
 )
 
