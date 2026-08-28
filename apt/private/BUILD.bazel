@@ -146,6 +146,13 @@ bzl_library(
 )
 
 bzl_library(
+    name = "pgp",
+    srcs = ["pgp.bzl"],
+    visibility = ["//apt:__subpackages__"],
+    deps = [":util"],
+)
+
+bzl_library(
     name = "util",
     srcs = ["util.bzl"],
     visibility = ["//apt:__subpackages__"],

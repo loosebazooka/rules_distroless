@@ -85,6 +85,41 @@ def _prune_uncacheable_facts(indices, formats, used_keys, snapshot_indices):
     }
     return (cacheable_indices, cacheable_formats)
 
+def _split_whitespace(s):
+    """Splits a string by contiguous whitespace (spaces, tabs, newlines)."""
+    parts = []
+    current = ""
+    for i in range(len(s)):
+        c = s[i]
+        if c == " " or c == "\t" or c == "\n" or c == "\r":
+            if current:
+                parts.append(current)
+                current = ""
+        else:
+            current += c
+    if current:
+        parts.append(current)
+    return parts
+
+def _parse_release_file(content):
+    """Parses SHA256 hashes for index files from Release/InRelease contents."""
+    hashes = {}
+    lines = content.splitlines()
+    in_sha256_section = False
+    for line in lines:
+        is_continuation = line.startswith(" ") or line.startswith("\t")
+        if line.startswith("SHA256:"):
+            in_sha256_section = True
+            continue
+        elif line.startswith("SHA512:") or line.startswith("SHA1:") or line.startswith("MD5Sum:") or (line and not is_continuation):
+            in_sha256_section = False
+        if in_sha256_section and is_continuation:
+            parts = _split_whitespace(line)
+            if len(parts) == 3:
+                sha256, _size, path = parts
+                hashes[path] = sha256
+    return hashes
+
 def _warning(rctx, message):
     rctx.execute([
         "echo",
@@ -101,4 +136,5 @@ util = struct(
     is_snapshot_uri = _is_snapshot_uri,
     index_fact_key = _index_fact_key,
     prune_uncacheable_facts = _prune_uncacheable_facts,
+    parse_release_file = _parse_release_file,
 )
