@@ -120,7 +120,7 @@ def _filemap(state, name, arch):
     return state.filemap[arch][name]
 
 def _add_source_if_not_present(state, source):
-    (urls, dist, components, architectures) = source
+    (urls, dist, components, architectures, gpg_keys) = source
 
     for arch in architectures:
         for comp in components:
@@ -135,7 +135,7 @@ def _add_source_if_not_present(state, source):
             if found:
                 continue
             for key in keys:
-                state.sources[key] = (urls, dist, comp, arch)
+                state.sources[key] = (urls, dist, comp, arch, gpg_keys)
 
 def _create():
     state = struct(

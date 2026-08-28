@@ -130,3 +130,18 @@ container_structure_test(
     image = ":image_platform",
     target_compatible_with = COMPATIBLE_WITH,
 )
+
+sh_test(
+    name = "bad_key_test",
+    srcs = ["bad_key_test.sh"],
+    data = [
+        "@rules_distroless//apt:extensions.bzl",
+    ],
+    env = {
+        "RULES_DISTROLESS_PATH": "$(rootpath @rules_distroless//apt:extensions.bzl)",
+    },
+    tags = [
+        "local",
+        "no-sandbox",
+    ],
+)
