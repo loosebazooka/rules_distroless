@@ -5,7 +5,6 @@ load("//distroless/tests:asserts.bzl", "assert_tar_listing")
 
 _TEST_SUITE_PREFIX = "deb_postfix/"
 
-
 def deb_postfix_tests():
     native.genrule(
         name = "_deb_postfix_mergedusr_data",

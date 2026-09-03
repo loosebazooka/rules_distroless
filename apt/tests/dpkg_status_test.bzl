@@ -5,7 +5,6 @@ load("//distroless/tests:asserts.bzl", "assert_tar_listing")
 
 _TEST_SUITE_PREFIX = "dpkg_status/"
 
-
 def dpkg_status_tests():
     # Test with single control archive
     native.genrule(

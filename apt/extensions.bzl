@@ -427,7 +427,7 @@ def _distroless_extension(mctx):
             )
 
         # Key every package by the architecture we are resolving for, not by the
-        # package's own `Architecture` field. 
+        # package's own `Architecture` field.
         # For arch-specific packages these are the same.
         # For `Architecture: all` packages this "expands" them into one entry per target architecture,
         # so each carries its own arch-specific dependency closure instead of a single frozen one shared across arches.

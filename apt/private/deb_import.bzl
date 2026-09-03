@@ -1,7 +1,7 @@
 "deb_import"
 
-load(":lockfile.bzl", "lockfile")
 load(":linker_script.bzl", "linker_script")
+load(":lockfile.bzl", "lockfile")
 load(":pkgconfig.bzl", "pkgconfig")
 load(":util.bzl", "util")
 
