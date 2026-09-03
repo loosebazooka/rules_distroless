@@ -427,7 +427,7 @@ def _distroless_extension(mctx):
             )
 
         # Key every package by the architecture we are resolving for, not by the
-        # package's own `Architecture` field. 
+        # package's own `Architecture` field.
         # For arch-specific packages these are the same.
         # For `Architecture: all` packages this "expands" them into one entry per target architecture,
         # so each carries its own arch-specific dependency closure instead of a single frozen one shared across arches.
@@ -472,9 +472,25 @@ def _distroless_extension(mctx):
             arch_set = dependency_set["sets"].setdefault(arch, {})
             arch_set[pkg_short_key] = package["Version"]
 
+    package_templates = []
+    for mod in mctx.modules:
+        for pt in mod.tags.package_template:
+            if pt.template and pt.template_file:
+                fail("apt.package_template: exactly one of 'template' or 'template_file' must be specified, not both.")
+            if not pt.template and not pt.template_file:
+                fail("apt.package_template: either 'template' or 'template_file' must be specified.")
+
+            tmpl = pt.template if pt.template else mctx.read(pt.template_file)
+            package_templates.append({
+                "packages": pt.packages,
+                "template": tmpl,
+                "additional_variables": dict(pt.additional_variables),
+            })
+
     # Generate a hub repo for every dependency set
     lock_content = glock.as_json()
     package_repo_modes = compute_package_repo_modes(glock.packages(), package_repo_roots)
+    package_templates_json = json.encode(package_templates)
     for depset_name in dependency_sets.keys():
         depset_mergedusr = dependency_set_mergedusr.get(depset_name, False)
         translate_dependency_set(
@@ -482,6 +498,7 @@ def _distroless_extension(mctx):
             depset_name = depset_name,
             lock_content = lock_content,
             mergedusr = depset_mergedusr,
+            package_templates = package_templates_json,
         )
 
     # Generate a repo per package which will be aliased by hub repo.
@@ -668,6 +685,37 @@ lock = tag_class(
     },
 )
 
+package_template = tag_class(
+    doc = """Configures a custom BUILD file template for packages matching specific name patterns.
+
+The template is rendered into each architecture subpackage (`//<package>/<arch>/BUILD.bazel`).
+Custom templates must define the following targets so the package root's multi-platform aliases and repo targets function correctly:
+  * `:data` (alias or target pointing to `{data_targets}`)
+  * `:control` (alias or target pointing to `{control_targets}`)
+  * `:{target_name}` (filegroup containing `{deps} + [":data"]`)
+
+For reference on the standard structure and available template variables, see the default template at
+`//apt/private:package.BUILD.tmpl` (https://github.com/bazel-contrib/rules_distroless/blob/main/apt/private/package.BUILD.tmpl).
+""",
+    attrs = {
+        "packages": attr.string_list(
+            doc = "List of package names or glob patterns (e.g. ['nvidia-*', 'libc6', '*']) this template applies to.",
+            default = ["*"],
+        ),
+        "template": attr.string(
+            doc = "Inline template string for the package BUILD file. Must define ':data', ':control', and ':{target_name}' targets (see `//apt/private:package.BUILD.tmpl`).",
+        ),
+        "template_file": attr.label(
+            doc = "Template file for the package BUILD file. Must define ':data', ':control', and ':{target_name}' targets (see `//apt/private:package.BUILD.tmpl`).",
+            allow_single_file = True,
+        ),
+        "additional_variables": attr.string_dict(
+            doc = "Additional variables to pass into template formatting.",
+            default = {},
+        ),
+    },
+)
+
 apt = module_extension(
     doc = _doc,
     implementation = _distroless_extension,
@@ -675,5 +723,6 @@ apt = module_extension(
         "install": install,
         "sources_list": sources_list,
         "lock": lock,
+        "package_template": package_template,
     },
 )
