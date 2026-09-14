@@ -11,7 +11,7 @@ _ROOT_BUILD_TMPL = """\
 load("@rules_distroless//apt:defs.bzl", "dpkg_status")
 load("@rules_distroless//distroless:defs.bzl", "flatten")
 
-exports_files(['packages.bzl'])
+exports_files(['lock.json'])
 
 # Map Debian architectures to platform CPUs.
 #
@@ -152,7 +152,6 @@ def _translate_dependency_set_impl(rctx):
     package_template = rctx.read(rctx.attr.package_template)
     lockf = lockfile.from_json(rctx, rctx.attr.lock_content)
 
-    sources = lockf.sources()
     packages = lockf.packages()
     dependency_sets = lockf.dependency_sets()
     dependency_set = dependency_sets[rctx.attr.depset_name]
@@ -209,10 +208,7 @@ Please unify the versions manually, or use separate `apt.install` calls (with di
                     control_targets = '"@%s//:control"' % repo_name,
                     src = '"@%s//:data"' % repo_name,
                     deps = package_deps_for_architecture(packages, package, architecture, mergedusr = rctx.attr.mergedusr),
-                    urls = [
-                        uri + "/" + package["filename"]
-                        for uri in sources[package["suite"]]["uris"]
-                    ],
+                    urls = package["urls"],
                     name = package["name"],
                     arch = package["architecture"],
                     sha256 = package["sha256"],
@@ -260,6 +256,7 @@ Please unify the versions manually, or use separate `apt.install` calls (with di
             ),
         )
 
+    rctx.file("lock.json", rctx.attr.lock_content)
     rctx.file("BUILD.bazel", _ROOT_BUILD_TMPL.format(
         target_name = util.get_repo_name(rctx.attr.name),
         packages = starlark_codegen_utils.to_dict_list_attr(architectures_to_package_names),
