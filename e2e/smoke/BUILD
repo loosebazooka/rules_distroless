@@ -1,4 +1,5 @@
 load("@bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_distroless//distroless:defs.bzl", "cacerts", "group", "passwd")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
@@ -121,12 +122,23 @@ oci_load(
     target_compatible_with = COMPATIBLE_WITH,
 )
 
+build_test(
+    name = "smoke_build_test",
+    targets = [
+        ":image_platform",
+        ":tarball",
+    ],
+)
+
 container_structure_test(
-    name = "test",
+    name = "structure_test",
     configs = select({
         "@platforms//cpu:arm64": ["test_linux_arm64.yaml"],
         "@platforms//cpu:x86_64": ["test_linux_amd64.yaml"],
     }),
     image = ":image_platform",
+    tags = [
+        "requires-docker",
+    ],
     target_compatible_with = COMPATIBLE_WITH,
 )

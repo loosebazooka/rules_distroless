@@ -5,7 +5,6 @@ load("//distroless/tests:asserts.bzl", "assert_tar_listing")
 
 _TEST_SUITE_PREFIX = "flatten/"
 
-
 def flatten_tests():
     # Test flattening two simple tar archives
     native.genrule(

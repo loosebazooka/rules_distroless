@@ -5,7 +5,6 @@ load("//distroless/tests:asserts.bzl", "assert_tar_listing")
 
 _TEST_SUITE_PREFIX = "locale/"
 
-
 def locale_tests():
     # Test basic locale extraction
     native.genrule(
